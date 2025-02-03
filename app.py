@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.ticker as mtick
 
 # Load Data (Manually Enter Your Data or Load from CSV)
 testnet_data = {
@@ -28,6 +29,9 @@ bridging_data = [
 mainnet_df = pd.DataFrame([mainnet_data])
 testnet_df = pd.DataFrame([testnet_data])
 bridge_df = pd.DataFrame(bridging_data)
+
+# Convert Volume to Millions
+bridge_df["volumeMillionsUSD"] = bridge_df["volumeUSD"] / 1_000_000
 
 # Streamlit App
 st.title("SOON Network Data Analytics")
@@ -58,16 +62,40 @@ ax.set_ylabel("Active Users (7 days)")
 ax.set_title("Active Users: Testnet vs. Mainnet")
 st.pyplot(fig)
 
-# Section 4: Bridging Data
-st.header("🔗 Bridging Statistics")
-st.write("Bridge Transaction Volume (USD)")
 
-# Create Bar Plot
-fig, ax = plt.subplots()
+
+
+
+# Load Bridging Data
+bridging_data = [
+    {"bridgeType": "Native Canonical Bridge", "token": "ETH", "volumeUSD": 981836.96},
+    {"bridgeType": "Hyperlane", "token": "SOL", "volumeUSD": 72941.47},
+    {"bridgeType": "Hyperlane", "token": "BONK", "volumeUSD": 3047.94}
+]
+
+# Convert to DataFrame
+bridge_df = pd.DataFrame(bridging_data)
+
+# Streamlit App
+st.title("SOON Network Bridging Inflows")
+
+st.header("🔗 Bridging Inflows by Token (in Thousands USD)")
+
+# Create a bar chart
+fig, ax = plt.subplots(figsize=(8, 5))
 sns.barplot(x="token", y="volumeUSD", hue="bridgeType", data=bridge_df, ax=ax)
-ax.set_ylabel("Total Volume (USD)")
-ax.set_title("Bridging Activity to SOON Network")
+
+# Update axis labels
+ax.set_ylabel("Total Volume (Thousands USD)")
+ax.set_xlabel("Token")
+ax.set_title("Bridging Inflows to SOON Network (in Thousands USD)")
+
+# Format the y-axis to display values in thousands
+ax.yaxis.set_major_formatter(mtick.FuncFormatter(lambda x, _: f"{x/1_000:,.0f}K"))
+
+# Display the chart in Streamlit
 st.pyplot(fig)
 
-st.write("### Raw Bridging Data")
-st.dataframe(bridge_df)
+# Display Updated Table in Streamlit
+st.write("### Raw Bridging Data (Volume in USD)")
+st.dataframe(bridge_df[["bridgeType", "token", "volumeUSD"]])
